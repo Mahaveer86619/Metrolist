@@ -7,7 +7,7 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
-val baseApplicationId = "com.metrolist.music"
+val baseApplicationId = "com.mahaveer86619.metrolist"
 val applicationIdOverride = System.getenv("METROLIST_APPLICATION_ID")?.takeIf { it.isNotBlank() }
 val appNameOverride = System.getenv("METROLIST_APP_NAME")?.takeIf { it.isNotBlank() }
 val buildCommit =
@@ -45,7 +45,7 @@ android {
         val baseVersionName = requireNotNull(versionName)
         buildConfigField("String", "BASE_VERSION_NAME", "\"$baseVersionName\"")
         buildCommit?.let { versionName = "$baseVersionName+$it" }
-        resValue("string", "app_name", appNameOverride ?: "Metrolist")
+        resValue("string", "app_name", appNameOverride ?: "Metrolist M")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -133,7 +133,7 @@ android {
             }
             isDebuggable = true
             if (appNameOverride == null) {
-                resValue("string", "app_name", "Metrolist Debug")
+                resValue("string", "app_name", "Metrolist M Debug")
             }
             signingConfig =
                 if (workflowDebugKeystoreFile != null) {
@@ -319,4 +319,17 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.ktor.client.mock)
+}
+
+// Fork release revision, applied per variant so upstream version bumps rebase without conflicts.
+val forkRevision = 1
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            val upstreamCode = output.versionCode.get() ?: 0
+            val upstreamName = output.versionName.get()
+            output.versionCode.set(upstreamCode * 100 + forkRevision)
+            output.versionName.set("$upstreamName-m$forkRevision")
+        }
+    }
 }
